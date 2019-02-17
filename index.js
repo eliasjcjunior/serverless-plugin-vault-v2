@@ -79,7 +79,7 @@ class ServerlessPlugin {
           keysMounted[key] = envs[key];
           process.env[key] = envs[key];
         } else if(!process.env[key]) {
-          this.serverless.cli.log(`VAULT:  - ${key} - <NOT FOUND>`);
+          this.serverless.cli.log(`VAULT: ${key} - <NOT FOUND>`);
         }
       });
       if (this.serverless.service.custom.kms) {
