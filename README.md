@@ -7,7 +7,7 @@
 ## Features
 
    * Integrates with serverless-plugin-dotenv
-   * Get the environments variables from your **Personal VAULT Server**
+   * Get the environments variables from your **Personal VAULT Server** (API V2)
    * Integrates with Key Management Service (AWS)
 
 ## Instalation and use
@@ -41,6 +41,18 @@ custom:
         url: <SERVER_URL>"
         paths: ["PATH_STORE1", ...]
         ssl_check: boolean
+```
+
+## KMS Configuration
+
+To add the kms integration, just put the Kms object with your vault configuration:
+
+```yaml
+custom:
+    vault:
+        ...
+    kms:
+        keyId: <"KMS_ID">
 ```
 
 License
