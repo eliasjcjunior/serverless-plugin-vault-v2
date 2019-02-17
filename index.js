@@ -7,7 +7,6 @@ class ServerlessPlugin {
   constructor(serverless, options) {
     this.serverless = serverless;
     this.options = options;
-
     this.commands = {
       vault: {
         lifecycleEvents: [
@@ -17,10 +16,9 @@ class ServerlessPlugin {
       },
     };
     this.kms = new aws.KMS({ region: this.options.region || 'us-east-1' });
-    this.hooks = {
-      'before:package:initialize': this.start.bind(this)
-    };
-
+    if (this.serverless.pluginManager.cliOptions.vault) {
+      this.start();
+    }
   }
 
   async kmsEncryptVariable(key, value) {
@@ -52,8 +50,7 @@ class ServerlessPlugin {
         ...data.data
       };
     } catch (error) {
-      this.serverless.cli.log('Problems to retrieve keys from vault: Check your path and your address and make sure you have everything done before run it again');
-      this.serverless.cli.log('Error to authenticate on Vault: ' + error.message);
+      this.serverless.cli.log('VAULT: Error to authenticate on Vault: ' + error.message);
       return Promise.reject(error);
     }
   }
@@ -72,34 +69,38 @@ class ServerlessPlugin {
 
   async start() {
     try {
-      const keysToVault = this.serverless.service.provider.environment;
+      const environments = this.serverless.service.provider.environment;
+      const keysToVault = Object.keys(environments).map(key => key);
       const envs = await this.getEnvByPaths();
       let keysMounted = {};
-      this.serverless.cli.log('Loading environments variables: ');
+      this.serverless.cli.log('VAULT: Loading environments variables from VAULT server...');
       keysToVault.forEach(key => {
-        if (envs[key]) {
-          this.serverless.cli.log(`- ${key} - <COMPUTED>`);
+        if (envs[key]) { 
           keysMounted[key] = envs[key];
-        } else {
-          this.serverless.cli.log(`- ${key} - <NOT FOUND>`);
+          process.env[key] = envs[key];
+        } else if(!process.env[key]) {
+          this.serverless.cli.log(`VAULT:  - ${key} - <NOT FOUND>`);
         }
       });
-      this.serverless.cli.log('Encrypting environments variables...');
-      const hashVariablesPromise = Object.keys(keysMounted).map(key => {
-        return this.kmsEncryptVariable(key, keysMounted[key]);
-      });
-      const hashVariablesResponse = await Promise.all(hashVariablesPromise);
-      hashVariablesResponse.forEach(item => {
-        if (keysMounted[item.key]) {
-          keysMounted[item.key] = item.value;
-        }
-      });
-      this.serverless.cli.log('Done');
-
+      if (this.serverless.service.custom.kms) {
+        this.serverless.cli.log('VAULT: Encrypting environments variables...');
+        const hashVariablesPromise = Object.keys(keysMounted).map(key => {
+          return this.kmsEncryptVariable(key, keysMounted[key]);
+        });
+        const hashVariablesResponse = await Promise.all(hashVariablesPromise);
+        hashVariablesResponse.forEach(item => {
+          if (keysMounted[item.key]) {
+            keysMounted[item.key] = item.value;
+          }
+        });
+      } else {
+        this.serverless.cli.log('VAULT: KMS ID not found, skipping encrypting ...');
+      }
+      this.serverless.cli.log('VAULT: Done');
       this.serverless.service.provider.environment = keysMounted;
     } catch (error) {
-      this.serverless.cli.log('Problems to retrieve keys from vault: Check your path and your address and make sure you have everything done before run it again');
-      this.serverless.cli.log('Error to authenticate on Vault: ' + error.message);
+      this.serverless.cli.log('VAULT: Error to authenticate on Vault: ' + error.message);
+      return Promise.reject(error);
     }
   }
 
