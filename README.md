@@ -10,7 +10,7 @@
    * Get the environments variables from your **Personal VAULT Server** (API V2)
    * Integrates with Key Management Service (AWS)
 
-## Instalation and use
+## Instalation
 
 ```sh
 yarn add --dev serverless-plugin-vault-v2
@@ -18,16 +18,6 @@ yarn add --dev serverless-plugin-vault-v2
 or
 ```
 npm install --save-dev serverless-plugin-vault-v2
-```
-
-Add at the end of the list of plugins to your `serverless.yml`:
-
-```yaml
-plugins:
-  - 'plugin1'
-  - 'plugin2'
-  ...
-  - 'serverless-plugin-vault-v2'
 ```
 
 ## Vault Configuration
@@ -53,6 +43,18 @@ custom:
         ...
     kms:
         keyId: <"KMS_ID">
+```
+
+## Use
+
+To activate the Vault Service use the flag --vault after serverless command **deploy** and with serverless offline the command **offline start**.
+Examples:
+```sh
+serverless deploy --vault
+```
+and
+```
+serverless offline start --vault
 ```
 
 License

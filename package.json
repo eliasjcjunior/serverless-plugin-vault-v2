@@ -1,6 +1,6 @@
 {
   "name": "serverless-plugin-vault-v2",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Simplify integration between serverless and vault to storage environments variables",
   "main": "index.js",
   "author": "Elias Júnior <eliasjcjunior@gmail.com>",
