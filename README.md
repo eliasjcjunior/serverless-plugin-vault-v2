@@ -6,8 +6,8 @@
 
 ## Features
 
-   * Integrates with serverless-plugin-dotenv
-   * Get the environments variables from your **Personal VAULT Server** (API V2)
+   * Working with serverless-plugin-dotenv
+   * Get the environments variables from your [Hashicorp VAULT!](https://www.vaultproject.io/) (API V2)
    * Integrates with Key Management Service (AWS)
 
 ## Instalation
