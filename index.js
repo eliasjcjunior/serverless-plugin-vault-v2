@@ -4,24 +4,23 @@ const request = require('request-promise-native');
 const aws = require('aws-sdk');
 
 class ServerlessPlugin {
-  constructor(serverless, options) {
+  constructor (serverless, options) {
     this.serverless = serverless;
     this.options = options;
-    this.commands = {
-      vault: {
-        lifecycleEvents: [
-          'vault',
-        ],
-        options: {},
-      },
-    };
-    this.kms = new aws.KMS({ region: this.options.region || 'us-east-1' });
-    if (this.serverless.pluginManager.cliOptions.vault) {
-      this.start();
+    const vault = this.serverless.pluginManager.cliOptions.vault;
+    if (vault) {
+      this.hooks = {
+        'before:offline:start:init': this.start.bind(this),
+        'before:package:initialize': this.start.bind(this)
+      }
+    } else {
+      this.serverless.cli.log('VAULT: Disabled load VAULT variables');
     }
+    this.kms = new aws.KMS({ region: this.options.region || 'us-east-1' });
   }
 
-  async kmsEncryptVariable(key, value) {
+
+  async kmsEncryptVariable (key, value) {
     const params = {
       KeyId: this.serverless.service.custom.kms.keyId,
       Plaintext: Buffer.from(String(value))
@@ -33,7 +32,7 @@ class ServerlessPlugin {
     };
   }
 
-  async getEnvsFromVault(baseUrl) {
+  async getEnvsFromVault (baseUrl) {
     const myOptions = {
       url: baseUrl,
       method: 'GET',
@@ -56,18 +55,18 @@ class ServerlessPlugin {
   }
 
 
-  mountBaseUrl(path) {
+  mountBaseUrl (path) {
     const splitPath = path.split('/');
     let secretBase = splitPath[0] + '/data';
     splitPath.forEach((item, index) => {
       if (index > 0) {
-        secretBase += "/" + item;
+        secretBase += '/' + item;
       }
     });
     return `${this.serverless.service.custom.vault.url}/v1/${secretBase}`;
   }
 
-  async start() {
+  async start () {
     try {
       const environments = this.serverless.service.provider.environment;
       const keysToVault = Object.keys(environments).map(key => key);
@@ -78,8 +77,6 @@ class ServerlessPlugin {
         if (envs[key]) { 
           keysMounted[key] = envs[key];
           process.env[key] = envs[key];
-        } else if(!process.env[key]) {
-          this.serverless.cli.log(`VAULT: ${key} - <NOT FOUND>`);
         }
       });
       if (this.serverless.service.custom.kms) {
@@ -97,14 +94,17 @@ class ServerlessPlugin {
         this.serverless.cli.log('VAULT: KMS ID not found, skipping encrypting ...');
       }
       this.serverless.cli.log('VAULT: Done');
-      this.serverless.service.provider.environment = keysMounted;
+      this.serverless.service.provider.environment = {
+        ...environments,
+        ...keysMounted
+      };
     } catch (error) {
       this.serverless.cli.log('VAULT: Error to authenticate on Vault: ' + error.message);
       return Promise.reject(error);
     }
   }
 
-  async getEnvByPaths() {
+  async getEnvByPaths () {
     const paths = this.serverless.service.custom.vault.paths;
     let envs = {};
     if (typeof paths === 'string') {
