@@ -1,6 +1,6 @@
 {
   "name": "serverless-plugin-vault-v2",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Simplify integration between serverless and vault to storage environments variables",
   "main": "index.js",
   "author": "Elias Júnior <eliasjcjunior@gmail.com>",
@@ -11,15 +11,15 @@
     "request-promise-native": "^1.0.7"
   },
   "repository": {
-      "type" : "git",
-      "url" : "https://github.com/eliasjcjunior/serverless-plugin-vault-v2"
-    },
-    "keywords": [
-      "serverless",
-      "vault",
-      "nodejs",
-      "plugin",
-      "kms",
-      "offline"
-    ]
+    "type": "git",
+    "url": "https://github.com/eliasjcjunior/serverless-plugin-vault-v2"
+  },
+  "keywords": [
+    "serverless",
+    "vault",
+    "nodejs",
+    "plugin",
+    "kms",
+    "offline"
+  ]
 }
