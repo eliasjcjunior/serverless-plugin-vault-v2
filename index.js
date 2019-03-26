@@ -33,14 +33,16 @@ class ServerlessPlugin {
   }
 
   async getEnvsFromVault (baseUrl) {
+    const ssl = this.serverless.service.custom.vault.ssl_check || false;
+    const method = ssl ? 'https://' : 'http://';
     const myOptions = {
-      url: baseUrl,
+      url: `${method}${baseUrl}`,
       method: 'GET',
       headers: {
         'X-Vault-Token': this.serverless.service.custom.vault.token,
         'Content-Type': 'application/json',
       },
-      strictSSL: this.serverless.service.custom.vault.ssl_check || false
+      strictSSL: ssl
     };
     try {
       const response = await request.get(myOptions).promise();
@@ -74,7 +76,7 @@ class ServerlessPlugin {
       let keysMounted = {};
       this.serverless.cli.log('VAULT: Loading environments variables from VAULT server...');
       keysToVault.forEach(key => {
-        if (envs[key]) { 
+        if (envs[key]) {
           keysMounted[key] = envs[key];
           process.env[key] = envs[key];
         }
